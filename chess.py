@@ -1,3 +1,4 @@
+##Note: Most commits are for comments, I just copy pasted a lot of it from my VSCode
 import random
 
 #Class for Players
@@ -61,10 +62,10 @@ class AIPlayerRandom(Player):
             z = 0
             gamePiece = None
             for p in self.pieces:
-                if p.eliminated == False:
+                if p.eliminated == False: 
                     possiblePieces.append(p)
             if len(possiblePieces) == 0:
-                return False
+                return False #Added to check why there were sometimes 0 possible moves to be
             gamePiece = possiblePieces[random.randint(1,len(possiblePieces))-1]
             possibleMoves = gamePiece.movement(game)
             if gamePiece in self.pieces and gamePiece.eliminated == False and len(possibleMoves) > 0:
@@ -72,17 +73,14 @@ class AIPlayerRandom(Player):
                 game.make_move(possibleMoves[z],gamePiece)
                 break
         
-
+#Class for the game
 class Chess():
     def __init__(self, player1, player2):
         self.board = [['   ' for i in range(8)] for i in range(8)]
         self.pieces = {player1.color:player1.pieces, player2.color:player2.pieces}
-        self.p1color = player1.color
-        self.p2color = player2.color
+        self.p1color = player1.color #Honestly, the self.p1color and self.p2color isn't necessarily needed when I could do self.players[x].color
+        self.p2color = player2.color #But, by the time I realized this, I already had put this in like 4 different functions and it was 5AM and it's a bit faster to type out.
         self.players = [player1, player2]
-        self.wCheck = False
-        self.bCheck = False
-        pass
     
     def play(self):
         self.setBoard()
@@ -90,22 +88,22 @@ class Chess():
             for player in self.players:
                 self.showBoard()
                 x = player.make_move(game)
-                self.checkElims()
+                self.checkElims() #Checks if any pieces have been eliminated after every move/turn 
                 if x == False:
                     print("Draw")
                     self.showBoard()
                 for colors in [self.p1color,self.p2color]:
-                    king = self.pieces[colors][0]
+                    king = self.pieces[colors][0] #King is always the first piece appended.
                     if king.eliminated == True:
                         winner = king.opcolor
-                        #if winner == 'b':
-                            #print("Black Wins")
-                        #else:
-                            #print("White Wins!")
+                        if winner == 'b':
+                            print("Black Wins")
+                        else:
+                            print("White Wins!")
                         self.showBoard()
                         return winner
                     
-    def checkElims(self):
+    def checkElims(self): #Checks which pieces are on the board. If it's not on the board, it's marked as eliminated
         for colors in [self.p1color,self.p2color]:
             for pieces in self.pieces[colors]:
                 for y in range(8):
@@ -116,7 +114,7 @@ class Chess():
                         break
         return
     
-    def showBoard(self):
+    def showBoard(self): #Went through several different formats for the board. This ended up being the one that looked the best.
         print('')
         print('   ','  0  ', '  1  ', '  2  ', '  3  ', '  4  ', '  5  ', '  6  ', '  7  ')
         print('')
@@ -124,17 +122,16 @@ class Chess():
             #print(y, self.board[y])
             print (y, '', '|',self.board[y][0], '|',self.board[y][1], '|',self.board[y][2], '|',self.board[y][3], '|',self.board[y][4], '|',self.board[y][5], '|',self.board[y][6], '|',self.board[y][7],'|',)
             print('   ',' ---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ')
-            #print('   ',' ___  ', '___  ', '___  ', '___  ', '___  ', '___  ', '___ ', '___  ')
-            #print("")
-            #print("")
-    def allPieceCoords(self):
+            
+    def allPieceCoords(self): #Function added to bug test
         for a in [self.p1color,self.p2color]:
             for pieces in self.pieces[a]:
                 print(pieces.desig, self.Cor[pieces])
             print("-")
-    def setBoard(self):
-        self.board = [['   ' for i in range(8)] for i in range(8)]
-        self.Cor = {}
+
+    def setBoard(self): #Basically puts all the pieces on the board as well as assigns the coordinates for pieces
+        self.board = [['   ' for i in range(8)] for i in range(8)] #Added to wipe the board clean before putting the pieces on the board. Prevents pieces from spilling over from past games
+        self.Cor = {} #Dictionary for the coordinates. 
         for x in range(8):
             self.board[1][x] = 'wP'+str(x)
             self.board[6][x] = 'bP'+str(x)
@@ -146,22 +143,21 @@ class Chess():
             x = 0
             for p in ['R','N','B']:
                 self.board[y][x] = c+p+str(0)
-                self.board[y][-(1+x)] = c+p+str(1)
+                self.board[y][-(1+x)] = c+p+str(1) # -(1+x) is an equation to get the reflected x coordinate
                 x = x+1
             for p in range(2):
                 self.board[y][x] =  c+'K'+str(0)
                 self.board[y][-(1+x)] = c+'Q'+str(0)
-        for a in [self.p2color,self.p1color]:
+                
+        for a in [self.p2color,self.p1color]: #Loop that assigns a piece's coords to a 
             for pieces in self.pieces[a]:
                 self.Cor[pieces] = pieces.checkPos(game)
         self.checkElims()
 
-    def make_move(self, coords, piece):
+    def make_move(self, coords, piece): #Function to actually makes a move on the board
         currPieceCoords = piece.checkPos(game)
-        self.board[coords[0]][coords[1]] = piece.desig
-        self.board[currPieceCoords[0]][currPieceCoords[1]] = '   '
-    def isFree(self, coords):
-        return self.board[coords[0][coords[1]]]
+        self.board[coords[0]][coords[1]] = piece.desig #First moves the piece to the spot
+        self.board[currPieceCoords[0]][currPieceCoords[1]] = '   ' #Then erases itself from the spot it moved from.
 
 class Piece():
     def __init__(self, color="White", num=0, eliminated=False, type = "type"):
@@ -487,7 +483,6 @@ playerB = AIPlayerRandom("Black")
 playerW = AIPlayerRandom("White")
 game = Chess(playerW,playerB)
 
-print(game.pieces[game.p1color][3].desig)
 
 bk = 0
 wt = 0
