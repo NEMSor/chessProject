@@ -92,16 +92,14 @@ class Chess():
                 if x == False:
                     print("Draw")
                     self.showBoard()
-                for colors in [self.p1color,self.p2color]:
-                    king = self.pieces[colors][0] #King is always the first piece appended.
-                    if king.eliminated == True:
-                        winner = king.opcolor
-                        if winner == 'b':
-                            print("Black Wins")
-                        else:
-                            print("White Wins!")
-                        self.showBoard()
-                        return winner
+                winner = self.checkWin()
+                if winner != 'None':
+                    if winner == 'b':
+                        print("Black Wins")
+                    else:
+                        print("White Wins!")
+                    self.showBoard()
+                    return winner
                     
     def checkElims(self): #Checks which pieces are on the board. If it's not on the board, it's marked as eliminated
         for colors in [self.p1color,self.p2color]:
@@ -113,6 +111,13 @@ class Chess():
                         pieces.eliminated = False
                         break
         return
+
+    def checkWin(self):
+        for colors in [self.p1color,self.p2color]:
+            king = self.pieces[colors][0] #King is always the first piece appended to the list.
+            if king.eliminated == True:
+                return king.opcolor
+        return 'None'
     
     def showBoard(self): #Went through several different formats for the board. This ended up being the one that looked the best.
         print('')
