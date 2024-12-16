@@ -129,7 +129,7 @@ class Chess():
                 print(pieces.desig, self.Cor[pieces])
             print("-")
 
-    def setBoard(self): #Basically puts all the pieces on the board as well as assigns the coordinates for pieces
+    def setBoard(self): #Basically puts all the pieces on the board as well as assigns the coordinates for pieces.
         self.board = [['   ' for i in range(8)] for i in range(8)] #Added to wipe the board clean before putting the pieces on the board. Prevents pieces from spilling over from past games
         self.Cor = {} #Dictionary for the coordinates. 
         for x in range(8):
@@ -159,20 +159,22 @@ class Chess():
         self.board[coords[0]][coords[1]] = piece.desig #First moves the piece to the spot
         self.board[currPieceCoords[0]][currPieceCoords[1]] = '   ' #Then erases itself from the spot it moved from.
 
+#Class for all the pieces on the board
 class Piece():
-    def __init__(self, color="White", num=0, eliminated=False, type = "type"):
+    def __init__(self, color="w", num=0, eliminated=False, type = "type"):
         self.color = color
         self.eliminated = eliminated
-        self.type = type
+        self.type = type 
         if color == 'b':
-            self.opcolor = 'w'
+            self.opcolor = 'w' #opcolor means opponent's color
         else:
             self.opcolor= 'b'
         self.num = num
         self.desig = type + str(num)
-    def checkPos(self,game):
+        
+    def checkPos(self,game): #Gets a piece's current coordinates.
         self.cor = [0,0]
-        self.cor[0] = 100
+        self.cor[0] = 100 
         self.cor[1] = 100
         if self.eliminated == False:
             for y in range(8):
@@ -181,48 +183,47 @@ class Piece():
                     for x in range(8):
                         if self.desig == game.board[y][x]:
                             self.cor[1] = x
-        return self.cor
+        return self.cor #Coordinates are not in [x, y], they're in [y, x] due to how the board is a nested list
     
     def movement(self):
-        print("ERROR!")
+        print("ERROR!") #Bug Testing
 
 class pawn(Piece):
     def __init__(self, color="White", num=0, eliminated=False, type="type"):
         super().__init__(color, num, eliminated, type)
-        self.type = "P"
-        self.desig = self.color + self.type + str(self.num)
-    def movement(self, game):
-        validMoves = []
-        y = 0
+        self.type = "P" #Overides self.type = "type"
+        self.desig = self.color + self.type + str(self.num) #Overrides self.desig. Desig is short for designation. 
+        
+    def movement(self, game): #Probably the most different/unique movement function from the rest of the other pieces, probably because it was the first one. Also, Override.
+        validMoves = [] #Only piece that uses validMoves as a list name
+        y = 0 #These variables are mostly so I don't get confused which coordinate I am changing since coords are usually (x, y) and not (y, x)
         x = 1
-        c = 0
+        c = 0 #The 'c' stands for 'color' since it changes values based on the color
         if self.color == 'w':
             c = -1
         else:
             c = 1
         cor = self.checkPos(game)
-        yT = cor[y]-c
-        xT = [cor[x]-1, cor[x]+1]
+        yT = cor[y]-c #The possible Y coordinate it can move to. 
+        xT = [cor[x]-1, cor[x]+1] #The possible X coordinates it can move to
         takes = [[yT,xT[0]], [yT,xT[1]]]
         if yT < 8 and y > -1:
             if game.board[yT][cor[x]] == '   ':
                 validMoves.append([yT,cor[x]])
         for move in takes:
             if (move[y] > -1 and move[y] < 8) and (move[x] > -1 and move[x] < 8):
- 
                 if self.opcolor in str(game.board[move[y]][move[x]]):
                     validMoves.append(move)
         
-        return validMoves
-        pass
+        return validMoves #returns all valid moves.
+        
 
 class king(Piece):
     def __init__(self, color="White", num=0, eliminated=False, type="type"):
         super().__init__(color, num, eliminated, type)
         self.type = "K"
         self.desig = self.color + self.type + str(self.num)
-    def validMove(self, x, y):
-        pass
+        
     def movement(self,game):
         availableMoves = []
         cor = self.checkPos(game)
