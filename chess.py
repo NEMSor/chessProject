@@ -5,11 +5,11 @@ import random
 class Player():
     def __init__(self, color):
         self.color = color
-        self.pieces = []
-        self.abr = 'w' if color == 'White' else 'b'
+        self.pieces = [] #List of all of a player's pieces
+        self.abr = 'w' if color == 'White' else 'b' #To more easily give designations to pieces
         self.givePieces()
         
-    def givePieces(self):
+    def givePieces(self): #Gives the player's pieces
         self.pieces.append(king(self.abr))
         self.pieces.append(queen(self.abr))
         for p in range(8):
@@ -20,7 +20,7 @@ class Player():
             self.pieces.append(rook(self.abr, p))
     
     def make_move(self,game):
-        print("ERROR! At class Player()")
+        print("ERROR! At class Player()") #Checking for errors
 
 #Human Players
 class HumanPlayer(Player):
