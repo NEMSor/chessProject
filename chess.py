@@ -483,21 +483,23 @@ class knight(Piece):
 
 
 
-#playerB = HumanPlayer("Black")
-playerB = AIPlayerRandom("Black")
-#playerW = HumanPlayer("White")
-playerW = AIPlayerRandom("White")
-game = Chess(playerW,playerB)
+if __name__ == "__main__": #Main Function
+    #playerB = HumanPlayer("Black")
+    playerB = AIPlayerRandom("Black")
+    #playerW = HumanPlayer("White")
+    playerW = AIPlayerRandom("White")
+    game = Chess(playerW,playerB)
 
+    print(game.pieces[game.p1color][3].desig)
 
-bk = 0
-wt = 0
+    bk = 0
+    wt = 0
 
-for x in range(100):
-    w = game.play()
-    if w == "w":
-        wt += 1
-    if w == "b":
-        bk += 1
+    for x in range(1):
+        w = game.play()
+        if w == "w":
+            wt += 1
+        if w == "b":
+            bk += 1
 
-print("Black", bk, "| White", wt)
+    print("Black", bk, "| White", wt)
