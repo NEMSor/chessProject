@@ -490,7 +490,6 @@ if __name__ == "__main__": #Main Function
     playerW = AIPlayerRandom("White")
     game = Chess(playerW,playerB)
 
-    print(game.pieces[game.p1color][3].desig)
 
     bk = 0
     wt = 0
