@@ -1,4 +1,6 @@
 import random
+
+#Class for Players
 class Player():
     def __init__(self, color):
         self.color = color
@@ -18,7 +20,8 @@ class Player():
     
     def make_move(self,game):
         print("ERROR! At class Player()")
-    
+
+#Human Players
 class HumanPlayer(Player):
     def __init__(self, color):
         super().__init__(color)
@@ -46,6 +49,7 @@ class HumanPlayer(Player):
                 print("Choose again.")
         return True
 
+#Random AI Player that chooses a random piece and then chooses a random available move for that piece
 class AIPlayerRandom(Player):
     def __init__(self, color):
         super().__init__(color)
@@ -64,7 +68,6 @@ class AIPlayerRandom(Player):
             gamePiece = possiblePieces[random.randint(1,len(possiblePieces))-1]
             possibleMoves = gamePiece.movement(game)
             if gamePiece in self.pieces and gamePiece.eliminated == False and len(possibleMoves) > 0:
-                
                 z = random.randint(0,len(possibleMoves))-1
                 game.make_move(possibleMoves[z],gamePiece)
                 break
