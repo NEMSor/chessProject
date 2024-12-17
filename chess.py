@@ -1,4 +1,3 @@
-##Note: Most commits are for comments, I just copy pasted a lot of it from my VSCode
 import random
 
 #Class for Players
@@ -52,7 +51,7 @@ class HumanPlayer(Player):
                 game.make_move(possibleMoves[z-1],gamePiece)
                 break
             else:
-                print("Choose again."
+                print("Choose again.")
         return True
 
 #Random AI Player that chooses a random piece and then chooses a random available move for that piece
