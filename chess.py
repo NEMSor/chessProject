@@ -175,6 +175,21 @@ class Chess():
         if len(coords) == 3:
             if coords[2] == "En Passant": #Added to adjust function for En Passant
                 self.board[coords[0]- (1 if piece.color == 'w' else -1)][coords[1]] = '   '
+            colour = "White" if piece.color == 'w' else "Black"
+            if coords[2] == "Castle1": #Castle with the R1s
+                 for pieces in self.pieces[colour]:
+                    if pieces.type == "R" and pieces.num == 1:
+                        self.board[coords[0]][0] = '   '
+                        self.board[coords[0]][coords[1]+1] = pieces.desig
+                        pieces.hasMoved = True
+                        break
+            if coords[2] == "Castle2": #Castle with the R2s
+                for pieces in self.pieces[colour]:
+                    if pieces.type == "R" and pieces.num == 2:
+                        self.board[coords[0]][7] = '   '
+                        self.board[coords[0]][coords[1]-1] = pieces.desig
+                        pieces.hasMoved = True   
+                        break
 
 #Class for all the pieces on the board
 class Piece():
@@ -258,10 +273,23 @@ class king(Piece):
         
     def movement(self,game):
         availableMoves = []
+        rooks = []
         cor = self.checkPos(game)
         y = cor[0]
         x = cor[1]
         s=1
+        for players in game.players:
+            if players.abr == self.color:
+                for pieces in players.pieces:
+                    if pieces.type == 'R':
+                        rooks.append(pieces)
+        for num in range(2):
+            if rooks[num].eliminated == False and self.hasMoved == False and rooks[num].hasMoved == False:
+                if rooks[num].num == 1 and game.board[y][x-1] == '   ' and game.board[y][x-2] == '   ':
+                    availableMoves.append([y, x-2, "Castle1"])
+                if rooks[num].num == 2 and game.board[y][x+1] == '   ' and game.board[y][x+2] == '   ' and game.board[y][x+3] == '   ':
+                    availableMoves.append([y, x+2, "Castle2"])
+                self.hasMoved == False
         if y+s < 8 and x+s < 8:
             if self.color not in str(game.board[y+s][x+s]):
                 availableMoves.append([y+s,x+s])
