@@ -10,14 +10,14 @@ class Player():
         self.givePieces()
         
     def givePieces(self): #Gives the player's pieces
-        self.pieces.append(king(self.abr))
-        self.pieces.append(queen(self.abr))
+        self.pieces.append(king(self.abr, 1))
+        self.pieces.append(queen(self.abr, 1))
         for p in range(8):
-            self.pieces.append(pawn(self.abr, p))
+            self.pieces.append(pawn(self.abr, p+1))
         for p in range(2):
-            self.pieces.append(bishop(self.abr, p))
-            self.pieces.append(knight(self.abr, p))
-            self.pieces.append(rook(self.abr, p))
+            self.pieces.append(bishop(self.abr, p+1))
+            self.pieces.append(knight(self.abr, p+1))
+            self.pieces.append(rook(self.abr, p+1))
     
     def make_move(self,game):
         print("ERROR! At class Player()") #Checking for errors
@@ -31,7 +31,7 @@ class HumanPlayer(Player):
     def make_move(self,game):
         while True:
             possibleMoves = []
-            piece = str(input(f"\nEnter which {self.color} piece you want to move: "))
+            piece = str(input(f"\nEnter which {self.color} piece you want to move: ")) #First chooses a piece
             gamePiece = None
             for p in self.pieces:
                 if p.desig == piece:
@@ -39,15 +39,20 @@ class HumanPlayer(Player):
                     possibleMoves = gamePiece.movement(game)
                     break
             
-            if gamePiece in self.pieces and gamePiece.eliminated == False and len(possibleMoves) > 0:
-                print("\n\nListing Possible Moves...\n\n"+"\033[4m# :  [y, x] \033[0m")
+            if gamePiece in self.pieces and gamePiece.eliminated == False and len(possibleMoves) > 0: #Then chooses a move
+                print("\n\nListing Possible Moves...\n\n"+"\033[4m## : (x, y) \033[0m")
                 for moves in range(len(possibleMoves)):
-                    print(moves,": ", possibleMoves[moves])
-                z = int(input("\nChoose which move: "))
-                game.make_move(possibleMoves[z],gamePiece)
+                    if moves < 9:
+                        print("0"+str(moves+1)+" : (" + str(possibleMoves[moves][1]+1) + ', ' + str(possibleMoves[moves][0]+1) + ")")
+                    else:
+                        print(str(moves+1)+" : (" + str(possibleMoves[moves][1]+1) + ', ' + str(possibleMoves[moves][0]+1) + ")")
+                z = 0
+                while z<1 or z>len(possibleMoves):
+                    z = int(input("\nChoose which move: "))
+                game.make_move(possibleMoves[z-1],gamePiece)
                 break
             else:
-                print("Choose again.")
+                print("Choose again."
         return True
 
 #Random AI Player that chooses a random piece and then chooses a random available move for that piece
@@ -66,9 +71,9 @@ class AIPlayerRandom(Player):
                     possiblePieces.append(p)
             if len(possiblePieces) == 0:
                 return False #Added to check why there were sometimes 0 possible moves to be
-            gamePiece = possiblePieces[random.randint(1,len(possiblePieces))-1]
+            gamePiece = possiblePieces[random.randint(1,len(possiblePieces))-1] #Chooses piece
             possibleMoves = gamePiece.movement(game)
-            if gamePiece in self.pieces and gamePiece.eliminated == False and len(possibleMoves) > 0:
+            if gamePiece in self.pieces and gamePiece.eliminated == False and len(possibleMoves) > 0: #Chooses move
                 z = random.randint(0,len(possibleMoves))-1
                 game.make_move(possibleMoves[z],gamePiece)
                 break
@@ -88,10 +93,12 @@ class Chess():
             for player in self.players:
                 self.showBoard()
                 x = player.make_move(game)
+                self.checkEnPassants(player) #After a player takes a turn,
                 self.checkElims() #Checks if any pieces have been eliminated after every move/turn 
-                if x == False:
+                if x == False: #Leftover from bug testing, x is only equal to false if there are no moves for. Kept because of the sheer amount of possible boards.
                     print("Draw")
                     self.showBoard()
+                    break
                 winner = self.checkWin()
                 if winner != 'None':
                     if winner == 'b':
@@ -118,14 +125,17 @@ class Chess():
             if king.eliminated == True:
                 return king.opcolor
         return 'None'
+
+    def checkEnPassants(self, player):
+        opcolor = 'White' if player.abr == 'b' else 'Black'
+        for pieces in self.pieces[opcolor]:
+            if pieces.type == 'P':
+                pieces.enPassant_able = False
     
     def showBoard(self): #Went through several different formats for the board. This ended up being the one that looked the best.
-        print('')
-        print('   ','  0  ', '  1  ', '  2  ', '  3  ', '  4  ', '  5  ', '  6  ', '  7  ')
-        print('')
+        print('\n   ', '  1  ', '  2  ', '  3  ', '  4  ', '  5  ', '  6  ', '  7  ','  8  \n')
         for y in range(8):
-            #print(y, self.board[y])
-            print (y, '', '|',self.board[y][0], '|',self.board[y][1], '|',self.board[y][2], '|',self.board[y][3], '|',self.board[y][4], '|',self.board[y][5], '|',self.board[y][6], '|',self.board[y][7],'|',)
+            print (y+1, '', '|',self.board[y][0], '|',self.board[y][1], '|',self.board[y][2], '|',self.board[y][3], '|',self.board[y][4], '|',self.board[y][5], '|',self.board[y][6], '|',self.board[y][7],'|',)
             print('   ',' ---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ')
             
     def allPieceCoords(self): #Function added to bug test
@@ -138,8 +148,8 @@ class Chess():
         self.board = [['   ' for i in range(8)] for i in range(8)] #Added to wipe the board clean before putting the pieces on the board. Prevents pieces from spilling over from past games
         self.Cor = {} #Dictionary for the coordinates. 
         for x in range(8):
-            self.board[1][x] = 'wP'+str(x)
-            self.board[6][x] = 'bP'+str(x)
+            self.board[1][x] = 'wP'+str(x+1)
+            self.board[6][x] = 'bP'+str(x+1)
         for c in ['w','b']:
             if c == 'w':
                 y=0
@@ -147,14 +157,14 @@ class Chess():
                 y=7
             x = 0
             for p in ['R','N','B']:
-                self.board[y][x] = c+p+str(0)
-                self.board[y][-(1+x)] = c+p+str(1) # -(1+x) is an equation to get the reflected x coordinate
+                self.board[y][x] = c+p+str(1)
+                self.board[y][-(1+x)] = c+p+str(2) # -(1+x) is an equation to get the reflected x coordinate
                 x = x+1
             for p in range(2):
-                self.board[y][x] =  c+'K'+str(0)
-                self.board[y][-(1+x)] = c+'Q'+str(0)
+                self.board[y][x] =  c+'K'+str(1)
+                self.board[y][-(1+x)] = c+'Q'+str(1)
                 
-        for a in [self.p2color,self.p1color]: #Loop that assigns a piece's coords to a 
+        for a in [self.p1color,self.p2color]: #Loop that assigns a piece's coords to a 
             for pieces in self.pieces[a]:
                 self.Cor[pieces] = pieces.checkPos(game)
         self.checkElims()
@@ -179,6 +189,7 @@ class Piece():
             self.opcolor= 'b'
         self.num = num
         self.desig = type + str(num)
+        self.hasMoved = False
         
     def checkPos(self,game): #Gets a piece's current coordinates.
         self.cor = [0,0]
@@ -201,6 +212,7 @@ class pawn(Piece):
         super().__init__(color, num, eliminated, type)
         self.type = "P" #Overides self.type = "type"
         self.desig = self.color + self.type + str(self.num) #Overrides self.desig. Desig is short for designation. 
+        self.enPassant_able = False
         
     def movement(self, game): #Probably the most different/unique movement function from the rest of the other pieces, probably because it was the first one. Also, Override.
         validMoves = [] #Only piece that uses validMoves as a list name
@@ -236,7 +248,6 @@ class pawn(Piece):
                 if (move[y] > -1 and move[y] < 8):
                     if self.opcolor in str(game.board[move[y]][move[x]]):
                         validMoves.append(move)
-        
         return validMoves #returns all valid moves.
         
 
@@ -363,8 +374,6 @@ class queen(Piece):
                     availableMoves.append([y,x-s])
         return availableMoves
         
-        
-
 class bishop(Piece):
     def __init__(self, color="White", num=0, eliminated=False, type="type"):
         super().__init__(color, num, eliminated, type)
@@ -453,14 +462,11 @@ class rook(Piece):
         for s in range(1,7):
             if x-s > -1:
                 if self.color in str(game.board[y][x-s]):
-                    
                     break
                 if self.opcolor in str(game.board[y][x-s]):
-                    
                     availableMoves.append([y,x-s])
                     break
                 if game.board[y][x-s] == '   ':
-                    
                     availableMoves.append([y,x-s])
         return availableMoves
 
@@ -480,7 +486,6 @@ class knight(Piece):
                 i = 1
             if p == 1:
                 i = 2
-            
             if (y + p < 8) and (x + i < 8):
                 if self.color not in game.board[y+p][x+i]:
                     availableMoves.append([y+p,x+i])
@@ -495,18 +500,12 @@ class knight(Piece):
                     availableMoves.append([y-p,x+i])     
         return availableMoves    
         
-
-
-
-
-
 if __name__ == "__main__": #Main Function
     #playerB = HumanPlayer("Black")
     playerB = AIPlayerRandom("Black")
     #playerW = HumanPlayer("White")
     playerW = AIPlayerRandom("White")
     game = Chess(playerW,playerB)
-
 
     bk = 0
     wt = 0
