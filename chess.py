@@ -1,5 +1,6 @@
 import random
 
+
 #Class for Players
 class Player():
     def __init__(self, color):
@@ -85,26 +86,28 @@ class Chess():
         self.p1color = player1.color #Honestly, the self.p1color and self.p2color isn't necessarily needed when I could do self.players[x].color
         self.p2color = player2.color #But, by the time I realized this, I already had put this in like 4 different functions and it was 5AM and it's a bit faster to type out.
         self.players = [player1, player2]
+        self.Cor = {}
     
     def play(self):
         self.setBoard()
         while True:
             for player in self.players:
-                self.showBoard()
+                self.showBoard(SHOW_BOARD)
                 x = player.make_move(game)
                 self.checkEnPassants(player) #After a player takes a turn,
                 self.checkElims() #Checks if any pieces have been eliminated after every move/turn 
                 if x == False: #Leftover from bug testing, x is only equal to false if there are no moves for. Kept because of the sheer amount of possible boards.
                     print("Draw")
-                    self.showBoard()
+                    self.showBoard(SHOW_BOARD)
                     break
                 winner = self.checkWin()
                 if winner != 'None':
-                    if winner == 'b':
-                        print("Black Wins")
-                    else:
-                        print("White Wins!")
-                    self.showBoard()
+                    if SHOW_WINNER == True:
+                        if winner == 'b':
+                            print("Black Wins!")
+                        else:
+                            print("White Wins!")
+                        self.showBoard(SHOW_BOARD)
                     return winner
                     
     def checkElims(self): #Checks which pieces are on the board. If it's not on the board, it's marked as eliminated
@@ -131,21 +134,22 @@ class Chess():
             if pieces.type == 'P':
                 pieces.enPassant_able = False
     
-    def showBoard(self): #Went through several different formats for the board. This ended up being the one that looked the best.
-        print('\n   ', '  1  ', '  2  ', '  3  ', '  4  ', '  5  ', '  6  ', '  7  ','  8  \n')
-        for y in range(8):
-            print (y+1, '', '|',self.board[y][0], '|',self.board[y][1], '|',self.board[y][2], '|',self.board[y][3], '|',self.board[y][4], '|',self.board[y][5], '|',self.board[y][6], '|',self.board[y][7],'|',)
-            print('   ',' ---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ')
+    def showBoard(self, SHOWBOARD): #Went through several different formats for the board. This ended up being the one that looked the best.
+        if SHOWBOARD == True:
+            print('\n   ', '  1  ', '  2  ', '  3  ', '  4  ', '  5  ', '  6  ', '  7  ','  8  \n')
+            for y in range(8):
+                print (y+1, '', '|',self.board[y][0], '|',self.board[y][1], '|',self.board[y][2], '|',self.board[y][3], '|',self.board[y][4], '|',self.board[y][5], '|',self.board[y][6], '|',self.board[y][7],'|',)
+                print('   ',' ---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ', '---  ')
             
     def allPieceCoords(self): #Function added to bug test
         for a in [self.p1color,self.p2color]:
             for pieces in self.pieces[a]:
                 print(pieces.desig, self.Cor[pieces])
             print("-")
-
+            
     def setCoords(self):
-        self.Cor = {} #Dictionary for coordinates
-        for a in [self.p1color,self.p2color]: #Loop that assigns a piece's coords to a 
+        self.Cor = {} #Coord dictionary
+        for a in [self.p1color,self.p2color]: #Loop that assigns a piece's coords to all pieces
             for pieces in self.pieces[a]:
                 self.Cor[pieces] = pieces.checkPos(game)
 
@@ -171,7 +175,6 @@ class Chess():
         self.setCoords()
         self.checkElims()
 
-
     def make_move(self, coords, piece): #Function to actually makes a move on the board
         currPieceCoords = piece.checkPos(game)
         self.board[coords[0]][coords[1]] = piece.desig #First moves the piece to the spot
@@ -180,14 +183,14 @@ class Chess():
             if coords[2] == "En Passant": #Added to adjust function for En Passant
                 self.board[coords[0]- (1 if piece.color == 'w' else -1)][coords[1]] = '   '
             colour = "White" if piece.color == 'w' else "Black"
-            if coords[2] == "Castle1": #Castle with the R1s
+            if coords[2] == "Castle1": #Added to adjust for Castles
                  for pieces in self.pieces[colour]:
                     if pieces.type == "R" and pieces.num == 1:
                         self.board[coords[0]][0] = '   '
                         self.board[coords[0]][coords[1]+1] = pieces.desig
                         pieces.hasMoved = True
                         break
-            if coords[2] == "Castle2": #Castle with the R2s
+            if coords[2] == "Castle2":
                 for pieces in self.pieces[colour]:
                     if pieces.type == "R" and pieces.num == 2:
                         self.board[coords[0]][7] = '   '
@@ -197,7 +200,8 @@ class Chess():
         if piece.type == 'P':
             player = None
             for x in self.players:
-                player = x if x.abr == piece.color else player
+                if x.abr == piece.color:
+                    player = x 
             piece.promotion(self, player)
 
 #Class for all the pieces on the board
@@ -253,7 +257,7 @@ class pawn(Piece):
         if yT < 8 and y > -1:
             if game.board[yT][cor[x]] == '   ':
                 validMoves.append([yT,cor[x]])
-        if self.hasMoved == False: #Double space move on first move for pawns
+        if self.hasMoved != True and (yT-c < 8 and yT-c > -1): #Double space move on first move for pawns
             if game.board[yT-c][x] == '   ':
                 validMoves.append([yT-c, cor[x]])
             self.hasMoved = True
@@ -265,26 +269,27 @@ class pawn(Piece):
                         if players.abr == self.opcolor:
                             for pieces in game.pieces[players.color]:
                                 if pieces.type == "P":
-                                    if pieces.enPassant_able:
+                                    if pieces.enPassant_able == True:
                                         opcor = pieces.checkPos(game)
                                         validMoves.append([opcor[y]-c, opcor[x], "En Passant"]) #En Passant
                 if (move[y] > -1 and move[y] < 8):
-                    if self.opcolor in str(game.board[move[y]][move[x]]):
+                    if self.opcolor in game.board[move[y]][move[x]]:
                         validMoves.append(move)
         return validMoves #returns all valid moves.
-
-    def promotion(self, game, player): #Promotion Function
+    
+    def promotion(self, game, player):
+        possiblePieces = ['Q', 'B', 'R', 'N']
         cor = self.checkPos(game)
         num = 1
         if cor[0] == 0 or cor[0] == 7:
             while isinstance(player, HumanPlayer) == True:
-                num = 1 #Resets the number every time it loops
+                num = 1
                 newPiece = str(input("Would you like to promote to a Queen(Q), Bishop(B), Rook(R), or Knight(N)?\nType the letter in the parentheses in the same case: "))
                 for pieces in player.pieces:
                     if pieces.type == newPiece:
                         num = num + 1
                 game.board[cor[0]][cor[1]] = self.color + newPiece + str(num)
-                if newPiece in ['Q', 'B', 'R', 'N']:
+                if newPiece in possiblePieces:
                     if newPiece == 'Q':
                         player.pieces.append(queen(self.color, num))
                     if newPiece == 'B':
@@ -296,20 +301,22 @@ class pawn(Piece):
                     break
                 else:
                     print("Choose again.")
-            while isinstance(player, AIPlayerRandom) == True:
-                newPiece = random.randint(1,4)
-                if newPiece == 1:
+            if isinstance(player, AIPlayerRandom) == True:
+                newPiece = possiblePieces[random.randint(0,3)]
+                for pieces in player.pieces:
+                    if pieces.type == newPiece:
+                        num = num + 1
+                if newPiece == 'Q':
                     player.pieces.append(queen(self.color, num))
-                if newPiece == 2:
+                if newPiece == 'B':
                     player.pieces.append(bishop(self.color, num))
-                if newPiece == 3:
+                if newPiece == 'R':
                     player.pieces.append(rook(self.color, num))
-                if newPiece == 4:
+                if newPiece == 'N':
                     player.pieces.append(knight(self.color, num))
-                break
             game.pieces[player.color] = player.pieces
             game.setCoords()
-
+            game.checkElims()
 class king(Piece):
     def __init__(self, color="White", num=0, eliminated=False, type="type"):
         super().__init__(color, num, eliminated, type)
@@ -323,41 +330,44 @@ class king(Piece):
         y = cor[0]
         x = cor[1]
         s=1
+    
         for players in game.players:
             if players.abr == self.color:
                 for pieces in players.pieces:
                     if pieces.type == 'R':
                         rooks.append(pieces)
-        for num in range(2): #Checks for Castles
+        for num in range(2):
             if rooks[num].eliminated == False and self.hasMoved == False and rooks[num].hasMoved == False:
-                if rooks[num].num == 1 and game.board[y][x-1] == '   ' and game.board[y][x-2] == '   ':
-                    availableMoves.append([y, x-2, "Castle1"])
-                if rooks[num].num == 2 and game.board[y][x+1] == '   ' and game.board[y][x+2] == '   ' and game.board[y][x+3] == '   ':
-                    availableMoves.append([y, x+2, "Castle2"])
+                if x-2 > 8:
+                    if rooks[num].num == 1 and game.board[y][x-1] == '   ' and game.board[y][x-2] == '   ':
+                        availableMoves.append([y, x-2, "Castle1"])
+                if x+3 < 8:
+                    if rooks[num].num == 2 and game.board[y][x+1] == '   ' and game.board[y][x+2] == '   ' and game.board[y][x+3] == '   ':
+                        availableMoves.append([y, x+2, "Castle2"])
                 self.hasMoved == False
         if y+s < 8 and x+s < 8:
-            if self.color not in str(game.board[y+s][x+s]):
+            if self.color not in game.board[y+s][x+s]:
                 availableMoves.append([y+s,x+s])
         if y-s > -1 and x-s > -1:
-            if self.color not in str(game.board[y-s][x-s]):
+            if self.color not in game.board[y-s][x-s]:
                 availableMoves.append([y-s,x-s])
         if x+s < 8 and y-s > -1:
-            if self.color not in (game.board[y-s][x+s]):
+            if self.color not in game.board[y-s][x+s]:
                 availableMoves.append([y-s,x+s])
         if x-s > -1 and y+s < 8:
-            if self.color not in str(game.board[y+s][x-s]):
+            if self.color not in game.board[y+s][x-s]:
                 availableMoves.append([y+s,x-s])
         if y+s < 8:
-            if self.color not in str(game.board[y+s][x]):
+            if self.color not in game.board[y+s][x]:
                 availableMoves.append([y+s,x])
         if y-s > -1:
-            if self.color not in str(game.board[y-s][x]):
+            if self.color not in game.board[y-s][x]:
                 availableMoves.append([y-s,x])
         if x+s < 8:
-            if self.color not in str(game.board[y][x+s]):
+            if self.color not in game.board[y][x+s]:
                 availableMoves.append([y,x+s])       
         if x-s > -1:
-            if self.color not in str(game.board[y][x-s]):
+            if self.color not in game.board[y][x-s]:
                 availableMoves.append([y,x-s])
         return availableMoves
 
@@ -373,72 +383,72 @@ class queen(Piece):
         x = cor[1]
         for s in range(1,7):
             if y+s < 8 and x+s < 8:
-                if self.color in str(game.board[y+s][x+s]):
+                if self.color in game.board[y+s][x+s]:
                     break
-                if self.opcolor in str(game.board[y+s][x+s]):
+                if self.opcolor in game.board[y+s][x+s]:
                     availableMoves.append([y+s,x+s])
                     break
                 if game.board[y+s][x+s] == '   ':
                     availableMoves.append([y+s,x+s])
         for s in range(1,7):
             if y-s > -1 and x-s > -1:
-                if self.color in str(game.board[y-s][x-s]):
+                if self.color in game.board[y-s][x-s]:
                     break
-                if self.opcolor in str(game.board[y-s][x-s]):
+                if self.opcolor in game.board[y-s][x-s]:
                     availableMoves.append([y-s,x-s])
                     break
                 if game.board[y-s][x-s] == '   ':
                     availableMoves.append([y-s,x-s])
         for s in range(1,7):
             if x+s < 8 and y-s > -1:
-                if self.color in str(game.board[y-s][x+s]):
+                if self.color in game.board[y-s][x+s]:
                     break
-                if self.opcolor in str(game.board[y-s][x+s]):
+                if self.opcolor in game.board[y-s][x+s]:
                     availableMoves.append([y-s,x+s])
                     break
                 if game.board[y-s][x+s] == '   ':
                     availableMoves.append([y-s,x+s])
         for s in range(1,7):
             if x-s > -1 and y+s < 8:
-                if self.color in str(game.board[y+s][x-s]):
+                if self.color in game.board[y+s][x-s]:
                     break
-                if self.opcolor in str(game.board[y+s][x-s]):
+                if self.opcolor in game.board[y+s][x-s]:
                     availableMoves.append([y+s,x-s])
                     break
                 if game.board[y+s][x-s] == '   ':
                     availableMoves.append([y+s,x-s])
         for s in range(1,7):
             if y+s < 8:
-                if self.color in str(game.board[y+s][x]):
+                if self.color in game.board[y+s][x]:
                     break
-                if self.opcolor in str(game.board[y+s][x]):
+                if self.opcolor in game.board[y+s][x]:
                     availableMoves.append([y+s,x])
                     break
                 if game.board[y+s][x] == '   ':
                     availableMoves.append([y+s,x])
         for s in range(1,7):
             if y-s > -1:
-                if self.color in str(game.board[y-s][x]):
+                if self.color in game.board[y-s][x]:
                     break
-                if self.opcolor in str(game.board[y-s][x]):
+                if self.opcolor in game.board[y-s][x]:
                     availableMoves.append([y-s,x])
                     break
                 if game.board[y-s][x] == '   ':
                     availableMoves.append([y-s,x])
         for s in range(1,7):
             if x+s < 8:
-                if self.color in str(game.board[y][x+s]):
+                if self.color in game.board[y][x+s]:
                     break
-                if self.opcolor in str(game.board[y][x+s]):
+                if self.opcolor in game.board[y][x+s]:
                     availableMoves.append([y,x+s])
                     break
                 if game.board[y][x+s] == '   ':
                     availableMoves.append([y,x+s])
         for s in range(1,7):
             if x-s > -1:
-                if self.color in str(game.board[y][x-s]):
+                if self.color in game.board[y][x-s]:
                     break
-                if self.opcolor in str(game.board[y][x-s]):
+                if self.opcolor in game.board[y][x-s]:
                     availableMoves.append([y,x-s])
                     break
                 if game.board[y][x-s] == '   ':
@@ -458,36 +468,36 @@ class bishop(Piece):
         x = cor[1]
         for s in range(1,7):
             if y+s < 8 and x+s < 8:
-                if self.color in str(game.board[y+s][x+s]):
+                if self.color in game.board[y+s][x+s]:
                     break
-                if self.opcolor in str(game.board[y+s][x+s]):
+                if self.opcolor in game.board[y+s][x+s]:
                     availableMoves.append([y+s,x+s])
                     break
                 if game.board[y+s][x+s] == '   ':
                     availableMoves.append([y+s,x+s])
         for s in range(1,7):
             if y-s > -1 and x-s > -1:
-                if self.color in str(game.board[y-s][x-s]):
+                if self.color in game.board[y-s][x-s]:
                     break
-                if self.opcolor in str(game.board[y-s][x-s]):
+                if self.opcolor in game.board[y-s][x-s]:
                     availableMoves.append([y-s,x-s])
                     break
                 if game.board[y-s][x-s] == '   ':
                     availableMoves.append([y-s,x-s])
         for s in range(1,7):
             if x+s < 8 and y-s > -1:
-                if self.color in str(game.board[y-s][x+s]):
+                if self.color in game.board[y-s][x+s]:
                     break
-                if self.opcolor in str(game.board[y-s][x+s]):
+                if self.opcolor in game.board[y-s][x+s]:
                     availableMoves.append([y-s,x+s])
                     break
                 if game.board[y-s][x+s] == '   ':
                     availableMoves.append([y-s,x+s])
         for s in range(1,7):
             if x-s > -1 and y+s < 8:
-                if self.color in str(game.board[y+s][x-s]):
+                if self.color in game.board[y+s][x-s]:
                     break
-                if self.opcolor in str(game.board[y+s][x-s]):
+                if self.opcolor in game.board[y+s][x-s]:
                     availableMoves.append([y+s,x-s])
                     break
                 if game.board[y+s][x-s] == '   ':
@@ -506,36 +516,36 @@ class rook(Piece):
         x = cor[1]
         for s in range(1,7):
             if y+s < 8:
-                if self.color in str(game.board[y+s][x]):
+                if self.color in game.board[y+s][x]:
                     break
-                if self.opcolor in str(game.board[y+s][x]):
+                if self.opcolor in game.board[y+s][x]:
                     availableMoves.append([y+s,x])
                     break
                 if game.board[y+s][x] == '   ':
                     availableMoves.append([y+s,x])
         for s in range(1,7):
             if y-s > -1:
-                if self.color in str(game.board[y-s][x]):
+                if self.color in game.board[y-s][x]:
                     break
-                if self.opcolor in str(game.board[y-s][x]):
+                if self.opcolor in game.board[y-s][x]:
                     availableMoves.append([y-s,x])
                     break
                 if game.board[y-s][x] == '   ':
                     availableMoves.append([y-s,x])
         for s in range(1,7):
             if x+s < 8:
-                if self.color in str(game.board[y][x+s]):
+                if self.color in game.board[y][x+s]:
                     break
-                if self.opcolor in str(game.board[y][x+s]):
+                if self.opcolor in game.board[y][x+s]:
                     availableMoves.append([y,x+s])
                     break
                 if game.board[y][x+s] == '   ':
                     availableMoves.append([y,x+s])
         for s in range(1,7):
             if x-s > -1:
-                if self.color in str(game.board[y][x-s]):
+                if self.color in game.board[y][x-s]:
                     break
-                if self.opcolor in str(game.board[y][x-s]):
+                if self.opcolor in game.board[y][x-s]:
                     availableMoves.append([y,x-s])
                     break
                 if game.board[y][x-s] == '   ':
@@ -573,20 +583,23 @@ class knight(Piece):
         return availableMoves    
         
 if __name__ == "__main__": #Main Function
-    #playerB = HumanPlayer("Black")
-    playerB = AIPlayerRandom("Black")
-    #playerW = HumanPlayer("White")
-    playerW = AIPlayerRandom("White")
+    
+    SHOW_BOARD = True
+    SHOW_WINNER = False
+    
+    playerB = HumanPlayer("Black")
+    #playerB = AIPlayerRandom("Black")
+    playerW = HumanPlayer("White")
+    #playerW = AIPlayerRandom("White")
     game = Chess(playerW,playerB)
 
     bk = 0
     wt = 0
-
+    #x = int(input("\nHow many games do you want to play? "))
     for x in range(1):
         w = game.play()
         if w == "w":
             wt += 1
         if w == "b":
             bk += 1
-
     print("Black", bk, "| White", wt)
