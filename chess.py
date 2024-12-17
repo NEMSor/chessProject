@@ -143,9 +143,14 @@ class Chess():
                 print(pieces.desig, self.Cor[pieces])
             print("-")
 
+    def setCoords(self):
+        self.Cor = {} #Dictionary for coordinates
+        for a in [self.p1color,self.p2color]: #Loop that assigns a piece's coords to a 
+            for pieces in self.pieces[a]:
+                self.Cor[pieces] = pieces.checkPos(game)
+
     def setBoard(self): #Basically puts all the pieces on the board as well as assigns the coordinates for pieces.
         self.board = [['   ' for i in range(8)] for i in range(8)] #Added to wipe the board clean before putting the pieces on the board. Prevents pieces from spilling over from past games
-        self.Cor = {} #Dictionary for the coordinates. 
         for x in range(8):
             self.board[1][x] = 'wP'+str(x+1)
             self.board[6][x] = 'bP'+str(x+1)
@@ -163,10 +168,9 @@ class Chess():
                 self.board[y][x] =  c+'K'+str(1)
                 self.board[y][-(1+x)] = c+'Q'+str(1)
                 
-        for a in [self.p1color,self.p2color]: #Loop that assigns a piece's coords to a 
-            for pieces in self.pieces[a]:
-                self.Cor[pieces] = pieces.checkPos(game)
+        self.setCoords()
         self.checkElims()
+
 
     def make_move(self, coords, piece): #Function to actually makes a move on the board
         currPieceCoords = piece.checkPos(game)
@@ -190,6 +194,11 @@ class Chess():
                         self.board[coords[0]][coords[1]-1] = pieces.desig
                         pieces.hasMoved = True   
                         break
+        if piece.type == 'P':
+            player = None
+            for x in self.players:
+                player = x if x.abr == piece.color else player
+            piece.promotion(self, player)
 
 #Class for all the pieces on the board
 class Piece():
@@ -263,7 +272,43 @@ class pawn(Piece):
                     if self.opcolor in str(game.board[move[y]][move[x]]):
                         validMoves.append(move)
         return validMoves #returns all valid moves.
-        
+
+def promotion(self, game, player): #Promotion Function
+        cor = self.checkPos(game)
+        num = 1
+        if cor[0] == 0 or cor[0] == 7:
+            while isinstance(player, HumanPlayer) == True:
+                num = 1 #Resets the number every time it loops
+                newPiece = str(input("Would you like to promote to a Queen(Q), Bishop(B), Rook(R), or Knight(N)?\nType the letter in the parentheses in the same case: "))
+                for pieces in player.pieces:
+                    if pieces.type == newPiece:
+                        num = num + 1
+                game.board[cor[0]][cor[1]] = self.color + newPiece + str(num)
+                if newPiece in ['Q', 'B', 'R', 'N']:
+                    if newPiece == 'Q':
+                        player.pieces.append(queen(self.color, num))
+                    if newPiece == 'B':
+                        player.pieces.append(bishop(self.color, num))
+                    if newPiece == 'R':
+                        player.pieces.append(rook(self.color, num))
+                    if newPiece == 'N':
+                        player.pieces.append(knight(self.color, num))
+                    break
+                else:
+                    print("Choose again.")
+            while isinstance(player, AIPlayerRandom) == True:
+                newPiece = random.randint(1,4)
+                if newPiece == 1:
+                    player.pieces.append(queen(self.color, num))
+                if newPiece == 2:
+                    player.pieces.append(bishop(self.color, num))
+                if newPiece == 3:
+                    player.pieces.append(rook(self.color, num))
+                if newPiece == 4:
+                    player.pieces.append(knight(self.color, num))
+                break
+            game.pieces[player.color] = player.pieces
+            game.setCoords()
 
 class king(Piece):
     def __init__(self, color="White", num=0, eliminated=False, type="type"):
