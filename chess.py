@@ -283,7 +283,7 @@ class king(Piece):
                 for pieces in players.pieces:
                     if pieces.type == 'R':
                         rooks.append(pieces)
-        for num in range(2):
+        for num in range(2): #Checks for Castles
             if rooks[num].eliminated == False and self.hasMoved == False and rooks[num].hasMoved == False:
                 if rooks[num].num == 1 and game.board[y][x-1] == '   ' and game.board[y][x-2] == '   ':
                     availableMoves.append([y, x-2, "Castle1"])
