@@ -273,7 +273,7 @@ class pawn(Piece):
                         validMoves.append(move)
         return validMoves #returns all valid moves.
 
-def promotion(self, game, player): #Promotion Function
+    def promotion(self, game, player): #Promotion Function
         cor = self.checkPos(game)
         num = 1
         if cor[0] == 0 or cor[0] == 7:
