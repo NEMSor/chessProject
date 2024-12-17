@@ -163,6 +163,9 @@ class Chess():
         currPieceCoords = piece.checkPos(game)
         self.board[coords[0]][coords[1]] = piece.desig #First moves the piece to the spot
         self.board[currPieceCoords[0]][currPieceCoords[1]] = '   ' #Then erases itself from the spot it moved from.
+        if len(coords) == 3:
+            if coords[2] == "En Passant": #Added to adjust function for En Passant
+                self.board[coords[0]- (1 if piece.color == 'w' else -1)][coords[1]] = '   '
 
 #Class for all the pieces on the board
 class Piece():
@@ -215,10 +218,24 @@ class pawn(Piece):
         if yT < 8 and y > -1:
             if game.board[yT][cor[x]] == '   ':
                 validMoves.append([yT,cor[x]])
+        if self.hasMoved == False: #Double space move on first move for pawns
+            if game.board[yT-c][x] == '   ':
+                validMoves.append([yT-c, cor[x]])
+            self.hasMoved = True
+            self.enPassant_able = True #Makes them able to be En Passant-ed
         for move in takes:
-            if (move[y] > -1 and move[y] < 8) and (move[x] > -1 and move[x] < 8):
-                if self.opcolor in str(game.board[move[y]][move[x]]):
-                    validMoves.append(move)
+            if (move[x] > -1 and move[x] < 8):
+                if self.opcolor in game.board[cor[y]][move[x]]:
+                    for players in game.players:
+                        if players.abr == self.opcolor:
+                            for pieces in game.pieces[players.color]:
+                                if pieces.type == "P":
+                                    if pieces.enPassant_able:
+                                        opcor = pieces.checkPos(game)
+                                        validMoves.append([opcor[y]-c, opcor[x], "En Passant"]) #En Passant
+                if (move[y] > -1 and move[y] < 8):
+                    if self.opcolor in str(game.board[move[y]][move[x]]):
+                        validMoves.append(move)
         
         return validMoves #returns all valid moves.
         
