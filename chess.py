@@ -308,6 +308,7 @@ class pawn(Piece):
                 for pieces in player.pieces:
                     if pieces.type == newPiece:
                         num = num + 1
+                game.board[cor[0]][cor[1]] = self.color + newPiece + str(num)
                 if newPiece == 'Q':
                     player.pieces.append(queen(self.color, num))
                 if newPiece == 'B':
